@@ -86,6 +86,7 @@ export default defineComponent({
       isJoined.value = true;
     };
 
+    // user join and leave events
     socket.on("user-joined", (message) => {
       messages.value.push({
         message: message,
@@ -100,6 +101,7 @@ export default defineComponent({
       });
     });
 
+    // Send message to the chat
     const sendMessage = () => {
       let message = {
         name: name.value,
@@ -111,10 +113,13 @@ export default defineComponent({
       socket.emit("send-message", message);
       messages.value.push(message);
       messageContent.value = "";
+      window.scrollTo(0, document.body.scrollHeight);
     };
 
+    // Message recieve event
     socket.on("recieve-message", (message) => {
       messages.value.push(message);
+      window.scrollTo(0, document.body.scrollHeight);
     });
 
     return {
