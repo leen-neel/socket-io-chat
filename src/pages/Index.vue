@@ -17,16 +17,11 @@
         You joined the chat as {{ name }}
       </div>
 
-      <SysMessage :messages="sysMessages" />
-
       <div v-for="message in messages" :key="message.name">
-        <q-chat-message
-          :name="message.name"
-          :text="[message.message]"
-          text-color="white"
-          bg-color="primary"
-          :avatar="message.avatar"
-          :sent="socket.id == message.id"
+        <ChatMessages
+          :message="message"
+          :isSys="message.isSys"
+          :socketID="socket.id"
         />
       </div>
 
@@ -65,10 +60,10 @@
 import { defineComponent, ref, unref } from "vue";
 import { socket } from "boot/socket";
 
-import SysMessage from "components/SysMessage";
+import ChatMessages from "components/ChatMessages.vue";
 export default defineComponent({
   components: {
-    SysMessage,
+    ChatMessages,
   },
 
   setup() {
@@ -76,28 +71,33 @@ export default defineComponent({
     const avatar = ref("");
     const isJoined = ref(false);
 
-    const sysMessages = ref([]);
-
     const messageContent = ref("");
     const messages = ref([]);
 
     const joinChat = () => {
       let userName = unref(name);
+
       socket.auth = { userName };
       socket.connect();
 
-      isJoined.value = true;
       avatar.value = `https://avatars.dicebear.com/api/croodles-neutral/${unref(
         name
       )}.svg?background=%23ffffff`;
+      isJoined.value = true;
     };
 
     socket.on("user-joined", (message) => {
-      messages.value.push();
+      messages.value.push({
+        message: message,
+        isSys: true,
+      });
     });
 
     socket.on("user-left", (message) => {
-      sysMessages.value.push(message);
+      messages.value.push({
+        message: message,
+        isSys: true,
+      });
     });
 
     const sendMessage = () => {
@@ -106,6 +106,7 @@ export default defineComponent({
         message: messageContent.value,
         avatar: avatar.value,
         id: socket.id,
+        isSys: false,
       };
       socket.emit("send-message", message);
       messages.value.push(message);
@@ -120,7 +121,6 @@ export default defineComponent({
       name,
       joinChat,
       isJoined,
-      sysMessages,
       sendMessage,
       messageContent,
       messages,
