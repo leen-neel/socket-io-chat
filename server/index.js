@@ -16,7 +16,6 @@ instrument(io, {
   auth: false,
 });
 
-let connected = [];
 io.on("connect", (socket) => {
   let userName = socket.handshake.auth.userName;
 
